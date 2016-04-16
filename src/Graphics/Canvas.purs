@@ -89,11 +89,13 @@ module Graphics.Canvas
   , createImageDataCopy
 
   , canvasElementToImageSource
+  , contextToCanvasElement
   , drawImage
   , drawImageScale
   , drawImageFull
 
   , createPattern
+  , createPatternFromCanvas
   , setPatternFillStyle
 
   , createLinearGradient
@@ -148,6 +150,9 @@ foreign import getCanvasElementByIdImpl ::
 -- | Get a canvas element by ID, or `Nothing` if the element does not exist.
 getCanvasElementById :: forall eff. String -> Eff (canvas :: Canvas | eff) (Maybe CanvasElement)
 getCanvasElementById elId = runFn3 getCanvasElementByIdImpl elId Just Nothing
+
+-- | Get a canvas element from a canvas context.
+foreign import contextToCanvasElement :: forall eff. Context2D -> CanvasElement
 
 -- | Get the 2D graphics context for a canvas element.
 foreign import getContext2D :: forall eff. CanvasElement -> Eff (canvas :: Canvas | eff) Context2D 
@@ -554,16 +559,22 @@ instance showPatternRepeat :: Show PatternRepeat where
   show RepeatY = "RepeatY"
   show NoRepeat = "NoRepeat"
 
+repeatString :: PatternRepeat -> String
+repeatString Repeat = "repeat"
+repeatString RepeatX = "repeat-x"
+repeatString RepeatY = "repeat-y"
+repeatString NoRepeat = "no-repeat"
+
 foreign import createPatternImpl :: forall eff. CanvasImageSource -> String -> Context2D -> Eff (canvas :: Canvas | eff) CanvasPattern
+foreign import createPatternFromCanvasImpl :: forall eff. CanvasElement -> String -> Context2D -> Eff (canvas :: Canvas | eff) CanvasPattern
 
 -- | Create a new canvas pattern (repeatable image).
 createPattern :: forall eff. CanvasImageSource -> PatternRepeat -> Context2D -> Eff (canvas :: Canvas | eff) CanvasPattern
-createPattern img repeat = createPatternImpl img (toString repeat)
-  where
-    toString Repeat = "repeat"
-    toString RepeatX = "repeat-x"
-    toString RepeatY = "repeat-y"
-    toString NoRepeat = "no-repeat"
+createPattern img repeat = createPatternImpl img (repeatString repeat)
+
+-- | Create a new canvas pattern from an existing canvas element.
+createPatternFromCanvas :: forall eff. CanvasElement -> PatternRepeat -> Context2D -> Eff (canvas :: Canvas | eff) CanvasPattern
+createPatternFromCanvas canvasElem repeat = createPatternFromCanvasImpl canvasElem (repeatString repeat)
 
 -- | Set the Context2D fillstyle to the CanvasPattern.
 foreign import setPatternFillStyle :: forall eff. CanvasPattern -> Context2D -> Eff (canvas :: Canvas | eff) Context2D
