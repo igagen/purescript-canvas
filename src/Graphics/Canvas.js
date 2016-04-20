@@ -37,6 +37,10 @@ exports.getCanvasElementByIdImpl = function(id, Just, Nothing) {
     };
 };
 
+exports.contextToCanvasElement = function(ctx) {
+  return ctx.canvas;
+};
+
 exports.getContext2D = function(c) {
     return function() {
         return c.getContext('2d');
@@ -506,7 +510,7 @@ exports.drawImageFull = function(ctx) {
     };
 };
 
-exports.createPatternImpl = function(img) {
+var createPatternImpl = function(img) {
     return function(repeat) {
         return function(ctx) {
             return function() {
@@ -515,6 +519,9 @@ exports.createPatternImpl = function(img) {
         };
     };
 };
+
+exports.createPatternImpl = createPatternImpl;
+exports.createPatternFromCanvasImpl = createPatternImpl;
 
 exports.setPatternFillStyle = function(pattern) {
     return function(ctx) {
